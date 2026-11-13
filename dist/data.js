@@ -14,8 +14,8 @@ export const FACILITIES=[
  {id:'smash',icon:'⚒',name:'河边砸一砸',tag:'野生加工',cost:0,desc:'听天由命的随机塑形。可能是神器，也可能是碎石。'},
  {id:'home',icon:'⌂',name:'回家粗打磨',tag:'家庭作坊',cost:12,desc:'砂纸、耐心，还有妈妈不太赞同的眼神。'},
  {id:'factory',icon:'⚙',name:'工厂精加工',tag:'精密制造',cost:35,desc:'控制厚度与半径。把手感交给千分尺。'},
- {id:'fluid',icon:'≋',name:'流体力学实验室',tag:'认真科学',cost:50,desc:'测算入水升阻力，找到这块石头的理想倾角。'},
- {id:'quantum',icon:'◈',name:'量子计算平台',tag:'不确定性',cost:65,desc:'在轻薄与坚实之间叠加。观测时，性状才坍缩。'},
+ {id:'fluid',icon:'≋',name:'流体力学实验室',tag:'认真科学',cost:50,desc:'联合优化出手角、倾角和旋转。392 组姿态先漂为敬。'},
+ {id:'quantum',icon:'◈',name:'量子计算平台',tag:'不确定性',cost:65,desc:'制备量子石头。飞行积累相位，量子水面负责观测。'},
  {id:'bio',icon:'♧',name:'未来泛生物研究所',tag:'石头也有 DNA',cost:80,desc:'选择亲本、编辑碱基对，让石头跨界成家。'},
  {id:'time',icon:'◷',name:'时间穿越公司',tag:'从源头改起',cost:90,desc:'回到岩石形成之前，干预温度、压力和冷却。'},
  {id:'future',icon:'✳',name:'未来材料实验室',tag:'并行筛选',cost:120,desc:'让 192 种候选材料在计算里先漂一次。'}

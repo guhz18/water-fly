@@ -1,1 +1,12 @@
-{"name":"little-stone-club","version":"1.1.1","private":true,"type":"module","scripts":{"dev":"node server.mjs","start":"node server.mjs","test":"node --test tests/physics.test.mjs tests/audio.test.mjs","audio:render":"node scripts/render-audio.mjs"}}
+{
+  "name": "little-stone-club",
+  "version": "1.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.mjs",
+    "start": "node server.mjs",
+    "test": "node --test tests/physics.test.mjs tests/audio.test.mjs tests/research.test.mjs",
+    "audio:render": "node scripts/render-audio.mjs"
+  }
+}

@@ -46,7 +46,7 @@ function noise(out, start, duration, gain, cutoff = .12, seed = 47, rate = SAMPL
 export function peak(samples) { let p = 0; for (const v of samples) p = Math.max(p, Math.abs(v)); return p; }
 function limit(samples, ceiling = .82) { const p = peak(samples); if (p > ceiling) for (let i = 0; i < samples.length; i++) samples[i] *= ceiling / p; return samples; }
 export function makeSfx(event, pack = 'shore', variant = 0, rate = SAMPLE_RATE) {
-  const len = { step: .15, ui: .13, pickup: .65, charge: .34, throw: .3, skip: .3, sink: .65, craft: 1.1, record: 1.5, npc: .36, error: .3, smash:.45, home:.9, factory:1.2, fluid:1, quantum:1.3, bio:1, time:1.2, future:1.2 }[event] || .3;
+  const len = { step: .15, ui: .13, pickup: .65, charge: .34, throw: .3, skip: .3, sink: .65, craft: 1.1, record: 1.5, npc: .36, error: .3, smash:.45, home:.9, factory:1.2, fluid:1, quantum:1.3, bio:1, time:1.2, future:1.2, plead:.7, farewell:.9, observe:.45 }[event] || .3;
   const out = new Float32Array(Math.ceil(rate * len));
   const kind = pack === 'pocket' ? 'chip' : pack === 'glass' ? 'bell' : 'wood';
   const n = variant % 4;
@@ -65,6 +65,9 @@ export function makeSfx(event, pack = 'shore', variant = 0, rate = SAMPLE_RATE) 
   if (event === 'smash') { noise(out,0,.23,.7,.5,83,rate);note(0,.28,48,.25,.6); }
   if (event === 'home') for(let i=0;i<3;i++)noise(out,i*.24,.22,.3,.35,72+i,rate);
   if (event === 'factory') { note(0,.9,45,.1,1.4);for(let i=0;i<5;i++)noise(out,i*.15,.11,.17,.2,19+i,rate);note(.84,.25,79,.12); }
+  if (event === 'plead') [76,79,74,72].forEach((p,i)=>note(i*.12,.20,p,.12,.94));
+  if (event === 'farewell') [79,76,72,67].forEach((p,i)=>note(i*.16,.24,p,.12));
+  if (event === 'observe') { note(0,.14,variant%2?84:72,.16);note(.12,.25,variant%2?79:67,.10,.97); }
   if (event === 'fluid') [67,72,76,79].forEach((p,i)=>note(i*.16,.24,p,.16,.65));
   if (event === 'quantum') { [72,79,84].forEach((p,i)=>tone(out,i*.08,1,p,.12,'bell',rate));note(.65,.5,60,.1,2); }
   if (event === 'bio') [60,67,64,72].forEach((p,i)=>note(i*.17,.3,p,.17));
