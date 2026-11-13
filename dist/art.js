@@ -1,3 +1,4 @@
+import {drawOutline} from './outline.js';
 import {MAPS} from './data.js';
 const canv=(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return c;};
 export function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
@@ -43,6 +44,13 @@ export function makeLandscape(map,mode='explore'){
  return canvas;
 }
 export function drawStone(c,stone,x,y,scale=1,face=false){
+ if(stone.outline&&(['sculpted','hybrid'].includes(stone.outline.family)||stone.outline.family==='rough'&&stone.level>0)){
+  drawOutline(c,stone,x,y,13*scale);c.save();c.translate(x,y);c.scale(scale,scale);
+  if(stone.kind==='npc'||face){rect(c,-4,-1,2,2,'#3b5946');rect(c,3,-1,2,2,'#3b5946');rect(c,-1,3,3,1,'#3b5946');}
+  const mark={key:'ESC',chip:'CPU',disk:'1.44'}[stone.kind];if(mark){c.fillStyle='#3b5946';c.textAlign='center';c.font='4px monospace';c.fillText(mark,0,2);}
+  if(stone.level>0){rect(c,12,-12,1,5,'#d4b463');rect(c,10,-10,5,1,'#d4b463');}c.restore();return;
+ }
+
  c.save();c.translate(Math.round(x),Math.round(y));c.scale(scale,scale);const col=stone.color||'#91a084';const shade='#667b64',light='#d5dbc0';rect(c,-11,6,22,3,'#4b62422b');
  switch(stone.kind){
  case 'toast':rect(c,-10,-9,20,15,'#9f774e');rect(c,-12,-8,24,7,'#a88050');rect(c,-9,-11,18,3,'#ae8351');rect(c,-8,-8,16,12,col);rect(c,-10,-7,20,5,col);rect(c,-6,-5,12,7,'#ead3a0');rect(c,-3,-3,2,2,'#d8b986');break;

@@ -1,17 +1,18 @@
 import {BASES, makeStone, TYPES} from './data.js';
 import {clamp} from './physics.js';
+import {outlineOf,outlineGeneOf,inheritOutline} from './outline.js';
 
 export const TRAITS=['radius','mass','flatness','smoothness'];
 export const TRAIT_NAMES=['体型 / 半径','密度 / 质量','层理 / 平整','表皮 / 光滑'];
 const bounds=[[.014,.07],[.008,.3],[.2,.99],[.2,.99]];
 // A locus inherits an actual parental allele. An explicit edit is a small,
 // relative change to that inherited phenotype, never a reset to the species template.
-export function breedStone(a,b,edits=[],random=Math.random){
+export function breedStone(a,b,edits=[],random=Math.random,outlineEdit='inherit'){
   const dominant=random()<.5?a:b;
   const child={...makeStone(dominant.id,false),name:TYPES[dominant.id].name+'·混血',rarity:'奇遇',
     desc:`${a.name}与${b.name}的孩子。认真遗传，偶尔调皮。`,history:[],
     lineage:{generation:1+Math.max(a.lineage?.generation||0,b.lineage?.generation||0),
-      parents:[a,b].map(p=>({id:p.id,name:p.name,genes:[...p.genes],traits:TRAITS.map(k=>p[k])})),loci:[]}};
+      parents:[a,b].map(p=>({id:p.id,name:p.name,genes:[...p.genes],traits:TRAITS.map(k=>p[k]),outline:outlineOf(p),outlineGene:outlineGeneOf(p)})),loci:[]}};
   child.genes=TRAITS.map((key,i)=>{
     const source=random()<.5?0:1,donor=source?b:a,other=source?a:b;
     const inherited=donor.genes[i],gene=BASES.includes(edits[i])?edits[i]:inherited;
@@ -21,6 +22,7 @@ export function breedStone(a,b,edits=[],random=Math.random){
     child.lineage.loci.push({source,inherited,gene,edited:gene!==inherited});
     return gene;
   });
+  const shape=inheritOutline(a,b,outlineEdit,random);child.outline=shape.outline;child.outlineGene=shape.outlineGene;child.lineage.outline=shape.inheritance;
   child.thickness=clamp((a.thickness+b.thickness)/2,.003,.03);
   // Special states pass from the visual dominant parent; parents remain untouched.
   if(dominant.quantum)child.quantum={...dominant.quantum};
@@ -41,6 +43,7 @@ export function resetProgress(state){const fresh=newProgress();fresh.selected=fr
 // Optional v1.2 metadata is whitelisted on backup import. Display strings are
 // rebuilt from known species, and no parent object references are retained.
 export function restoreResearch(out,x){
+  out.outline=outlineOf({...out,outline:x.outline});out.outlineGene=outlineGeneOf({...out,outlineGene:x.outlineGene});
   if(x.quantum&&Number.isFinite(x.quantum.bias)&&Number.isFinite(x.quantum.phase))
     out.quantum={bias:clamp(x.quantum.bias,.1,.9),phase:clamp(x.quantum.phase,0,360)};
   const p=x.recommendedThrow;
@@ -50,8 +53,9 @@ export function restoreResearch(out,x){
   const l=x.lineage;
   if(l?.parents?.length===2&&l.loci?.length===4&&l.parents.every(p=>TYPES[p.id]&&p.genes?.length===4&&p.genes.every(g=>BASES.includes(g))&&p.traits?.length===4&&p.traits.every(Number.isFinite))&&l.loci.every(p=>[0,1].includes(p.source)&&BASES.includes(p.inherited)&&BASES.includes(p.gene))){
     out.lineage={generation:clamp(Math.floor(l.generation)||1,1,9999),
-      parents:l.parents.map(p=>({id:p.id,name:TYPES[p.id].name,genes:[...p.genes],traits:p.traits.map((v,i)=>clamp(v,...bounds[i]))})),
+      parents:l.parents.map(p=>({id:p.id,name:TYPES[p.id].name,genes:[...p.genes],traits:p.traits.map((v,i)=>clamp(v,...bounds[i])),outline:outlineOf({...TYPES[p.id],outline:p.outline}),outlineGene:outlineGeneOf({...TYPES[p.id],outlineGene:p.outlineGene})})),
       loci:l.loci.map(p=>({source:p.source,inherited:p.inherited,gene:p.gene,edited:p.inherited!==p.gene}))};
+    const g=l.outline;if(g&&[0,1].includes(g.source)&&BASES.includes(g.inherited)&&BASES.includes(g.gene))out.lineage.outline={source:g.source,inherited:g.inherited,gene:g.gene,edited:g.inherited!==g.gene};
     out.name=TYPES[out.id].name+'·混血';out.rarity='奇遇';
     out.desc=out.lineage.parents.map(p=>p.name).join('与')+'的孩子。认真遗传，偶尔调皮。';
   }

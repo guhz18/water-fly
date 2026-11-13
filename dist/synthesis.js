@@ -46,7 +46,7 @@ function noise(out, start, duration, gain, cutoff = .12, seed = 47, rate = SAMPL
 export function peak(samples) { let p = 0; for (const v of samples) p = Math.max(p, Math.abs(v)); return p; }
 function limit(samples, ceiling = .82) { const p = peak(samples); if (p > ceiling) for (let i = 0; i < samples.length; i++) samples[i] *= ceiling / p; return samples; }
 export function makeSfx(event, pack = 'shore', variant = 0, rate = SAMPLE_RATE) {
-  const len = { step: .15, ui: .13, pickup: .65, charge: .34, throw: .3, skip: .3, sink: .65, craft: 1.1, record: 1.5, npc: .36, error: .3, smash:.45, home:.9, factory:1.2, fluid:1, quantum:1.3, bio:1, time:1.2, future:1.2, plead:.7, farewell:.9, observe:.45 }[event] || .3;
+  const len = { step: .15, ui: .13, pickup: .65, charge: .34, throw: .3, skip: .3, sink: .65, craft: 1.1, record: 1.5, npc: .36, error: .3, smash:.45, home:.9, factory:1.2, fluid:1, quantum:1.3, bio:1, time:1.2, future:1.2, plead:.7, farewell:.9, observe:.45, impact:.32 }[event] || .3;
   const out = new Float32Array(Math.ceil(rate * len));
   const kind = pack === 'pocket' ? 'chip' : pack === 'glass' ? 'bell' : 'wood';
   const n = variant % 4;
@@ -57,6 +57,7 @@ export function makeSfx(event, pack = 'shore', variant = 0, rate = SAMPLE_RATE) 
   if (event === 'pickup') [72, 76, 79].forEach((p, i) => note(i * .09, .34, p + (pack === 'glass' ? 12 : 0), .2 - i * .025));
   if (event === 'charge') note(0, .32, 48, .16, 1.8);
   if (event === 'throw') { noise(out, 0, .24, .36, .12, 48, rate); note(.015, .19, 52, .14, 1.65); }
+  if (event === 'impact') { noise(out,0,.27,.42,.3,202+variant,rate);note(0,.22,62+variant%4,.18,.62); }
   if (event === 'skip') { note(0, .22, 67 + Math.min(variant, 18), .25, pack === 'pocket' ? .8 : .48); noise(out, .008, .22, .48, pack === 'glass' ? .2 : .35, 23 + variant, rate); }
   if (event === 'sink') { note(0, .32, 49, .34, .42); noise(out, .025, .48, .58, .12, 88, rate); note(.19, .15, 57, .09, .5); }
   if (event === 'craft') { noise(out, 0, .14, .36, .32, 90, rate); [60, 67, 72, 76].forEach((p, i) => note(.13 + i * .13, .44, p, .23)); }
