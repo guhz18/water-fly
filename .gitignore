@@ -1,0 +1,9 @@
+node_modules/
+*.tar.gz
+*.log
+.preview/
+
+.openai/
+.env
+.env.*
+!.env.example

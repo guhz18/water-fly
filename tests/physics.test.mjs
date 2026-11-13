@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {SkipSimulation,Water,evaluateStone} from '../dist/physics.js';
+import {TYPES,MAPS,makeStone} from '../dist/data.js';
+test('all 24 materials terminate with finite trajectories on all five maps',()=>{for(const t of TYPES)for(const map of MAPS){const sim=new SkipSimulation(makeStone(t.id,false),{},map);let n=0;while(!sim.done&&n++<6000)sim.step(1/240);assert.ok(sim.done,`${t.name} in ${map.name}`);assert.ok(Number.isFinite(sim.x)&&Number.isFinite(sim.y));assert.ok(sim.skips>=0&&sim.skips<200);assert.ok(sim.result().distance>=0);}});
+test('flat stones outperform dense rounded meteorites under the same throw',()=>{assert.ok(evaluateStone(makeStone(0,false)).skips>evaluateStone(makeStone(12,false)).skips);});
+test('tilt and spin influence actual water contacts',()=>{const s=makeStone(0,false),normal=evaluateStone(s);assert.ok(normal.skips>evaluateStone(s,{tilt:5}).skips);assert.ok(normal.skips>evaluateStone(s,{tilt:50}).skips);assert.ok(normal.skips>evaluateStone(s,{spin:0}).skips);});
+test('fixed timestep reproduces outcomes for different render frame rates',()=>{const s=makeStone(0,false);const a=new SkipSimulation(s),b=new SkipSimulation(s);while(!a.done)a.advance(1/30);while(!b.done)b.advance(1/144);assert.deepEqual(a.result(),b.result());});
+test('wave impulses propagate and remain bounded over sixty simulated seconds',()=>{const w=new Water({wave:0,wind:0,current:0});w.impulse(60,5);let propagated=false;for(let i=0;i<14400;i++){w.step(1/240);if(Math.abs(w.eta[190])>1e-7)propagated=true;}assert.ok(propagated);assert.ok(w.eta.every(Number.isFinite));assert.ok(w.u.every(Number.isFinite));assert.ok(Math.max(...w.eta.map(Math.abs))<.2);});
+test('reported bounces only count successful upward exits',()=>{const sim=new SkipSimulation(makeStone(0,false));while(!sim.done)sim.step(1/240);assert.equal(sim.skips,sim.contacts.filter(c=>c.success).length);assert.ok(sim.contacts.length>=sim.skips);});
+test('extreme supported throws remain finite and terminate',()=>{for(const speed of [5,17])for(const pitch of [-25,15])for(const tilt of [5,50])for(const spin of [0,70]){const sim=new SkipSimulation(makeStone(9,false),{speed,pitch,tilt,spin},MAPS[2]);while(!sim.done)sim.step(1/240);assert.ok(Number.isFinite(sim.result().distance));assert.ok(sim.time<=24.01);}});
