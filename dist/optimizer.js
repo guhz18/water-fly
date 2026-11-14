@@ -1,2 +1,19 @@
-import {evaluateStone,clamp} from './physics.js';
-self.onmessage=({data})=>{const {stone,start,count}=data;let best=null;for(let i=0;i<count;i++){const index=start+i;const a=(index%8)/7,b=(Math.floor(index/8)%6)/5,c=Math.floor(index/48)/3;const candidate={...stone,mass:.025+a*.12,radius:.029+b*.023,flatness:clamp(.82+c*.17,.1,.99),smoothness:.95,thickness:.004+(1-c)*.006};const score=evaluateStone(candidate);if(!best||score.score>best.result.score)best={stone:candidate,result:score};if(i%6===0)self.postMessage({progress:i/count});}self.postMessage({done:true,best});};
+import {evaluateStone} from './physics.js';
+import {betterResult} from './goals.js';
+
+self.onmessage = ({data}) => {
+  const {stone, start, count, objective} = data;
+  let best;
+  for (let i = 0; i < count; i++) {
+    const index = start + i;
+    const massStep = (index % 8) / 7;
+    const radiusStep = (Math.floor(index / 8) % 6) / 5;
+    const layerStep = Math.floor(index / 48) / 3;
+    const candidate = {...stone, mass: .025 + massStep * .12, radius: .029 + radiusStep * .023,
+      flatness: Math.min(.99, .82 + layerStep * .17), smoothness: .95, thickness: .004 + (1 - layerStep) * .006};
+    const result = evaluateStone(candidate);
+    if (betterResult(result, best?.result, objective)) best = {stone: candidate, result};
+    if (i % 6 === 0) self.postMessage({progress: i / count});
+  }
+  self.postMessage({done: true, best});
+};

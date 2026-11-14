@@ -12,7 +12,7 @@ export class ImpactDirector {
   const height=sim.water.sample(sim.x).height,clearance=sim.y-sim.stone.radius*sim.profile.maxRadius*Math.sin(sim.tilt)-sim.stone.thickness/2-height;
   return sim.vy<-.03&&clearance/Math.max(.1,-sim.vy)<.115;
  }
- speed(sim,{speed=1,hero=true}={}){return hero&&this.isClose(sim)?Math.min(speed,sim.contact?.08:.18):speed;}
+ speed(sim,{speed=1,follow=false}={}){return follow&&this.isClose(sim)?Math.min(speed,sim.contact?.08:.18):speed;}
  advance(sim,elapsed,options={},onRate=()=>{}){
   this.wallBudget+=Math.min(.1,Math.max(0,elapsed));
   while(!sim.done){
@@ -22,8 +22,8 @@ export class ImpactDirector {
    this.wallBudget=Math.max(0,this.wallBudget-cost);sim.step(sim.dt);
   }
  }
- updateView(sim,dt,{hero=true,reducedMotion=false}={}){
-  const active=hero&&this.isClose(sim),target=active?3.6:1;
+ updateView(sim,dt,{follow=false,reducedMotion=false}={}){
+  const active=follow&&this.isClose(sim),target=active?3.6:follow&&sim&&!sim.done?1.8:1;
   this.zoom=reducedMotion?1:this.zoom+(target-this.zoom)*(1-Math.exp(-dt*15));
   if(Math.abs(this.zoom-1)<.005)this.zoom=1;
   this.focus=sim?{x:sim.x,y:Math.max(0,sim.y)}:null;

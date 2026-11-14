@@ -39,19 +39,19 @@ test('legacy and malformed outlines migrate to bounded finite profiles',()=>{
  assert.ok(p.area>0&&Number.isFinite(p.polarMoment));assert.ok(p.outline.radii.every(r=>r>=.18));
  const sim=new SkipSimulation(s);while(!sim.done)sim.step(sim.dt);assert.ok(Number.isFinite(sim.x));
 });
-function runPlayback({speed=1,hero=false,fps=60,quantum=false}={}){
+function runPlayback({speed=1,follow=false,fps=60,quantum=false}={}){
  const s={...makeStone(0,false),quantum:{phase:45,bias:.6}},sim=quantum?new QuantumSkipSimulation(s,{},MAPS[0],seeded(77)):new SkipSimulation(s,{},MAPS[0]),director=new ImpactDirector();
  const old=sim.onContact;sim.onContact=contact=>{director.impact(contact,sim);old?.(contact);};let wall=0,minRate=1;
- while(!sim.done&&wall<300){director.advance(sim,1/fps,{speed,hero},rate=>minRate=Math.min(minRate,rate));wall+=1/fps;director.updateView(sim,1/fps,{hero});}
+ while(!sim.done&&wall<300){director.advance(sim,1/fps,{speed,follow},rate=>minRate=Math.min(minRate,rate));wall+=1/fps;director.updateView(sim,1/fps,{follow});}
  assert.ok(sim.done);return {result:sim.result(),observations:sim.observations,contacts:sim.contacts,shots:director.shots,wall,minRate,sim};
 }
 test('slow playback preserves physics and quantum observations at every supported speed and frame rate',()=>{
  for(const quantum of [false,true]){const normal=runPlayback({quantum});for(const speed of [.5,.25,.1]){const slow=runPlayback({speed,fps:30,quantum});assert.deepEqual(slow.result,normal.result);assert.deepEqual(slow.observations,normal.observations);assert.ok(slow.wall>normal.wall/speed-.1);}}
 });
-test('hero camera covers every contact including final sink without changing the throw',()=>{
- const normal=runPlayback(),hero=runPlayback({hero:true,fps:144});assert.deepEqual(hero.result,normal.result);assert.equal(hero.shots.length,hero.contacts.length);
- assert.equal(hero.minRate,.08);assert.ok(hero.wall>normal.wall);assert.equal(hero.shots.at(-1).time,hero.contacts.at(-1).time);
- const director=new ImpactDirector();director.updateView(hero.sim,.1,{hero:true,reducedMotion:true});assert.equal(director.zoom,1);
+test('follow camera covers every contact including final sink without changing the throw',()=>{
+ const normal=runPlayback(),follow=runPlayback({follow:true,fps:144});assert.deepEqual(follow.result,normal.result);assert.equal(follow.shots.length,follow.contacts.length);
+ assert.equal(follow.minRate,.08);assert.ok(follow.wall>normal.wall);assert.equal(follow.shots.at(-1).time,follow.contacts.at(-1).time);
+ const director=new ImpactDirector();director.updateView(follow.sim,.1,{follow:true,reducedMotion:true});assert.equal(director.zoom,1);
 });
 test('replays never change credits, personal records, history or total throw count',()=>{
  const state=newProgress(),before=JSON.stringify(state),result={skips:99,distance:150,duration:12};
@@ -69,5 +69,5 @@ test('Web Audio flight cues track playback speed and pause; UI and music remain 
  const music=audio.start({},'music',true);audio.setTimeScale(.1);assert.equal(impact.source.playbackRate.value,.1);assert.equal(music.source.playbackRate.value,1);
  audio.setFlightPaused(true);assert.equal(impact.source.playbackRate.value,0);assert.equal(ui.source.playbackRate.value,1);
  audio.setFlightPaused(false);assert.equal(impact.source.playbackRate.value,.1);audio.setFlight(false);audio.setTimeScale(1);assert.equal(impact.source.playbackRate.value,.1,'finishing sound retains its slowed tail');
- const prefs=normalizeSettings({playbackSpeed:.25,heroCamera:false});assert.equal(prefs.playbackSpeed,.25);assert.equal(prefs.heroCamera,false);assert.equal(normalizeSettings({playbackSpeed:-9}).playbackSpeed,1);
+ const prefs=normalizeSettings({playbackSpeed:.25,heroCamera:true});assert.equal(prefs.playbackSpeed,.25);assert.equal('heroCamera' in prefs,false);assert.equal(normalizeSettings({playbackSpeed:-9}).playbackSpeed,1);
 });

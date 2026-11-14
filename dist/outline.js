@@ -28,11 +28,43 @@ export function outlineOf(stone={}){
 }
 export function outlineGeneOf(stone){return ['AT','TA','GC','CG'].includes(stone.outlineGene)?stone.outlineGene:genes[outlineOf(stone).family]||'AT';}
 export function inheritOutline(a,b,edit,random=Math.random){
- const source=random()<.5?0:1,parents=[a,b],donor=outlineOf(parents[source]),other=outlineOf(parents[1-source]);
- const inherited=outlineGeneOf(parents[source]),gene=OUTLINE_ALLELES[edit]?edit:inherited,edited=gene!==inherited;
- const blend={family:'hybrid',radii:donor.radii.map((r,i)=>r*.65+other.radii[i]*.35),hole:donor.hole*.65+other.hole*.35};
- if(edited){const target=makeOutline(OUTLINE_ALLELES[gene]);blend.radii=blend.radii.map((r,i)=>.7*r+.3*target.radii[i]);blend.hole*=.7;}
- return {outline:blend,outlineGene:gene,inheritance:{source,inherited,gene,edited}};
+ return inheritFamilyOutline([a,b],edit,random);
+}
+
+export function inheritFamilyOutline(parents,edit,random=Math.random) {
+ const count=parents.length;
+ const source=Math.floor(random()*count);
+ const inherited=outlineGeneOf(parents[source]);
+ const gene=Object.hasOwn(OUTLINE_ALLELES,edit)?edit:inherited;
+ const shapes=parents.map(outlineOf);
+ const order=parents.map((_,i)=>i);
+ for(let i=count-1;i>0;i--){
+   const j=Math.floor(random()*(i+1));
+   [order[i],order[j]]=[order[j],order[i]];
+ }
+ // Allocate at least four contiguous radial samples to each contributor.
+ // Extra samples give siblings different arcs even with the same contributors.
+ const lengths=Array(count).fill(4);
+ for(let i=4*count;i<OUTLINE_SAMPLES;i++)lengths[Math.floor(random()*count)]++;
+ const sectors=Array(OUTLINE_SAMPLES);
+ let pos=Math.floor(random()*OUTLINE_SAMPLES);
+ for(const index of order){
+   for(let j=0;j<lengths[index];j++)sectors[pos++%OUTLINE_SAMPLES]=index;
+ }
+ const target=gene!==inherited?makeOutline(OUTLINE_ALLELES[gene]):null;
+ const radii=sectors.map((donor,i)=>{
+   const previous=sectors[(i+OUTLINE_SAMPLES-1)%OUTLINE_SAMPLES];
+   const next=sectors[(i+1)%OUTLINE_SAMPLES];
+   // Feather just the two rays touching a seam. The interior keeps notches.
+   let edge=shapes[donor].radii[i];
+   if(previous!==donor)edge += .2*(shapes[previous].radii[i]-shapes[donor].radii[i]);
+   if(next!==donor)edge += .2*(shapes[next].radii[i]-shapes[donor].radii[i]);
+   return target ? .7*edge+.3*target.radii[i] : edge;
+ });
+ const openArea=shapes.reduce((sum,s,i)=>sum+s.hole**2*lengths[i]/OUTLINE_SAMPLES,0);
+ const hole=Math.min(Math.min(...radii)*.7,Math.sqrt(openArea)*(target ? .7 : 1));
+ return {outline:{family:'hybrid',radii,hole},outlineGene:gene,
+   inheritance:{source,inherited,gene,edited:gene!==inherited,sectors}};
 }
 export function chipOutline(stone,random=Math.random){const o=outlineOf(stone),center=Math.floor(random()*OUTLINE_SAMPLES),depth=.08+random()*.22;
  return {...o,family:'rough',radii:o.radii.map((v,i)=>{const d=Math.min(Math.abs(i-center),OUTLINE_SAMPLES-Math.abs(i-center));return Math.max(.18,v-depth*Math.exp(-d*d/5));})};}
@@ -80,5 +112,29 @@ export function drawOutline(c,stone,x,y,size=26,rotation=0,flatten=1){
  const p=buildProfile(stone);c.save();c.translate(x,y);c.scale(size,size*flatten);c.rotate(rotation);
  const path=points=>{points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.closePath();};
  c.beginPath();path(p.points);if(p.hole.length)path(p.hole);c.fillStyle=stone.color||'#94ac86';c.fill('evenodd');c.strokeStyle='#4b695f';c.lineWidth=1.5/size;c.stroke();
+ c.clip('evenodd');
+ if(stone.surface && size>=9)drawSurface(c,stone.surface);
  c.globalAlpha=.45;c.beginPath();c.moveTo(-.32,-.25);c.lineTo(.12,-.25);c.strokeStyle='#f5f1ce';c.lineWidth=2/size;c.stroke();c.restore();
+}
+
+function drawSurface(c,surface){
+ const {pattern,grain,glaze}=surface;
+ c.fillStyle='#365552';
+ c.globalAlpha=.18+.23*grain;
+ for(let row=0;row<4;row++)for(let col=0;col<4;col++){
+   const x=-.94+col*.46+(row%2)*.13,y=-.83+row*.43;
+   if(pattern==='grid'){
+     c.fillRect(x,y,.19,.045);c.fillRect(x,y,.045,.16);
+   }else if(pattern==='crumb' || pattern==='spark'){
+     const side=.044+.09*grain;
+     c.fillRect(x,y,side,side);
+     if(pattern==='spark'){c.fillRect(x-.055,y+.03,.16,.035);}
+   }else {
+     c.fillRect(x,y,.18,.045);c.fillRect(x+.18,y-.04,.11,.045);
+     if(pattern==='waves')c.fillRect(x+.28,y,.12,.045);
+   }
+ }
+ c.fillStyle='#fff2c8';c.globalAlpha=.15+glaze*.55;
+ c.fillRect(-.48,-.39,.23+.3*glaze,.065);
+ c.fillRect(.14,.28,.08+.18*glaze,.055);
 }

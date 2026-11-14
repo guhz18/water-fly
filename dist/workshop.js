@@ -1,6 +1,6 @@
 import {drawStone} from './art.js';
 const themes={smash:['#646a4d','#cbd096','手动塑形台'],home:['#9a755c','#edc896','河边的小工作室'],factory:['#506c70','#a4ddc8','精密减材车间'],fluid:['#46687b','#9cdef0','三变量循环水槽'],quantum:['#514a79','#d8b2f3','相干态制备舱'],bio:['#496e60','#c0e3b3','泛生物温室'],time:['#7e6455','#f3d99c','地质时间中转站'],future:['#425f78','#9fd9f0','并行材料机房']};
-export const STAGE_LINES={smash:['瞄准棱角','轻敲裂面','收集小脾气'],home:['铺好砂纸','慢慢去毛刺','把手感磨圆'],factory:['夹紧工件','数控减材','检测公差'],fluid:['校准水槽','联合搜索姿态','复核最佳组合'],quantum:['隔离噪声','制备叠加态','装好相位罗盘'],bio:['读取双亲','配对碱基','欢迎小石头'],time:['定位出生年代','改写形成条件','签收新历史'],future:['分发候选','并行水漂模拟','收敛最佳解']};
+export const STAGE_LINES={smash:['瞄准棱角','轻敲裂面','收集小脾气'],home:['铺好砂纸','慢慢去毛刺','把手感磨圆'],factory:['夹紧工件','数控减材','检测公差'],fluid:['校准水槽','联合搜索姿态','复核最佳组合'],quantum:['隔离噪声','制备叠加态','装好相位罗盘'],bio:['登记亲本','配对碱基','欢迎小石头'],time:['定位出生年代','改写形成条件','签收新历史'],future:['分发候选','并行水漂模拟','收敛最佳解']};
 export function workshopMarkup(id){return `<div class="workshop-scene"><canvas id="workshopScene" data-scene="${id}" width="960" height="300" aria-label="${themes[id][2]}像素场景"></canvas><div class="stage-caption"><span class="stage-light"></span><b id="stageLabel">${themes[id][2]} · 等你开工</b><small>STONE WORKS / 08</small></div></div>`;}
 export function drawWorkshop(canvas,stone,time,busy,reducedMotion=false,parent=null){
   if(!canvas||!stone)return;

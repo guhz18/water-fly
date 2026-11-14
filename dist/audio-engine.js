@@ -1,9 +1,9 @@
 import { makeSfx, makeMusic, makeAmbience, sfxDemo, SAMPLE_RATE, SOUND_PACKS, MUSIC_STYLES } from './synthesis.js';
-export const DEFAULT_SETTINGS = Object.freeze({ master:70, music:35, effects:75, ambience:45, muted:false, soundPack:'pocket', musicStyle:'drift', backgroundMute:true, reducedMotion:false, trajectory:true, hints:true, renderRate:60, chargeMode:'hold',playbackSpeed:1,heroCamera:true });
+export const DEFAULT_SETTINGS = Object.freeze({ master:70, music:35, effects:75, ambience:45, muted:false, soundPack:'pocket', musicStyle:'drift', backgroundMute:true, reducedMotion:false, trajectory:true, hints:true, renderRate:60, chargeMode:'hold',playbackSpeed:1 });
 export function normalizeSettings(input = {}) {
   const s={...DEFAULT_SETTINGS};
   for(const key of ['master','music','effects','ambience'])if(Number.isFinite(input[key]))s[key]=Math.max(0,Math.min(100,input[key]));
-  for(const key of ['muted','backgroundMute','reducedMotion','trajectory','hints','heroCamera'])if(typeof input[key]==='boolean')s[key]=input[key];
+  for(const key of ['muted','backgroundMute','reducedMotion','trajectory','hints'])if(typeof input[key]==='boolean')s[key]=input[key];
   if(SOUND_PACKS.some(x=>x.id===input.soundPack))s.soundPack=input.soundPack;
   if(MUSIC_STYLES.some(x=>x.id===input.musicStyle))s.musicStyle=input.musicStyle;
   if([30,60].includes(input.renderRate))s.renderRate=input.renderRate;
